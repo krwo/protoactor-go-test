@@ -118,7 +118,7 @@ func (p *testProbe) AsSenderMiddleware() actor.SenderMiddleware {
 	return func(next actor.SenderFunc) actor.SenderFunc {
 		return func(c actor.SenderContext, target *actor.PID, envelope *actor.MessageEnvelope) {
 			if target != p.pid {
-				c.Send(p.pid, envelope.Message)
+				p.message <- envelope.Message
 			}
 			next(c, target, envelope)
 		}
@@ -137,6 +137,25 @@ func (p *testProbe) AsProps() *actor.Props {
 		}
 	})
 }
+//
+//func (p *testProbe) AsService() (service *actor.Props, request chan interface{}, response chan interface{}) {
+//	request = make(chan interface{}, 2)
+//	response = make(chan interface{}, 2)
+//	return actor.PropsFromFunc(func(c actor.Context) {
+//		switch msg := c.Message().(type) {
+//		case actor.SystemMessage:
+//		case actor.AutoReceiveMessage:
+//		default:
+//			p.message <- msg
+//			select {
+//			case input := <-request:
+//				if reflect.DeepEqual(input, msg) {
+//					c.Respond(<-response)
+//				}
+//			}
+//		}
+//	}), request, response
+//}
 
 /*
 Verifies if all expected user defined messages have been received. The order of messages is not checked
